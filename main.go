@@ -19,19 +19,50 @@
 package main
 
 import (
-	"log"
+	"fmt"
+	"html/template"
+	"io/ioutil"
+	"os"
+	"path/filepath"
 
 	"github.com/BurntSushi/toml"
+	"github.com/MasterMinds/sprig"
 )
 
-func main() {
-	text := "foo = 42"
-	var data struct {
-		Foo int
-	}
-	err := toml.Unmarshal([]byte(text), &data)
+const configGlob = `/etc/replicator.d/*.toml`
+
+func failIf(err error) {
 	if err != nil {
-		log.Fatal(err.Error())
+		fmt.Fprintln(os.Stderr, err.Error())
+		os.Exit(1)
 	}
-	log.Printf("foo = %#v\n", data.Foo)
+}
+
+func readConfig() map[string]interface{} {
+	paths, err := filepath.Glob(configGlob)
+	failIf(err)
+
+	text := ""
+	for _, path := range paths {
+		bytes, err := ioutil.ReadFile(path)
+		failIf(err)
+		text += string(bytes) + "\n"
+	}
+
+	result := map[string]interface{}{}
+	failIf(toml.Unmarshal([]byte(text), &result))
+	return result
+}
+
+func main() {
+	var locals struct {
+		Vars map[string]interface{}
+	}
+	locals.Vars = readConfig()
+
+	tmplText, err := ioutil.ReadAll(os.Stdin)
+	failIf(err)
+	tmpl, err := template.New("stdin").Funcs(sprig.FuncMap()).Parse(string(tmplText))
+	failIf(err)
+	failIf(tmpl.Execute(os.Stdout, &locals))
 }
