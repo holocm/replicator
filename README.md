@@ -8,9 +8,10 @@ template to standard output.
   functions](https://github.com/MasterMinds/sprig) is available. Refer to the release notes for which Sprig version is
   available in a specific release of Replicator.
 
-* Variables come from [TOML files](https://github.com/toml-lang/toml) in files called `/etc/replicator.d/*.toml`. All
-  files are concatenated together (in alphabetical order) before being parsed. These variables are available during
-  rendering as `.Vars`.
+* Variables come from [TOML files](https://github.com/toml-lang/toml) in files
+  called `/etc/replicator.d/*.toml`. If there are multiple files, they are
+  parsed in alphabetical order and merged as described in the section "Merging"
+  below.
 
 For example:
 
@@ -42,3 +43,51 @@ sudo make install
 ```
 
 Replicator can also be installed via `go get github.com/holocm/replicator`.
+
+## Merging
+
+Each TOML file in `/etc/replicator.d/*.toml` is parsed in alphabetical order,
+and then they are all merged in the `foldl` pattern:
+
+```
+result = (((first + second) + third) + ...)
+```
+
+Arrays are merged by concatenation.
+
+```toml
+[[first]]
+name = "foo"
+
+[[second]]
+name = "bar"
+
+[[result]]
+name = "foo"
+[[result]]
+name = "bar"
+```
+
+Tables are merged key-by-key, such that values in the second table take precedence
+over those with the same key in the first table.
+
+```toml
+[first]
+key1 = "value1"
+key2 = "value2"
+
+[second]
+key1 = "value11"
+key3 = "value33"
+
+[result]
+key1 = "value11"
+key2 = "value2"
+key3 = "value33"
+```
+
+However, if the value from the first table is another table or an array, it
+will be merged with the value from the second table by applying these rules
+recursively. A type error will be issued if both values have different types
+(where all scalar values are considered to be of the same type; so there are
+only three types, "scalar", "array" and "table").
