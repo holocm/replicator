@@ -24,7 +24,7 @@ import (
 )
 
 func testcase(t *testing.T, name string, first, second, expected map[string]interface{}, expectedErr string) {
-	actual, err := MergeMaps(first, second)
+	actual, err := MergeTables(first, second)
 	if !reflect.DeepEqual(expected, actual) {
 		t.Errorf(
 			"testcase failed: %s\n  expected result: %#v\n    actual result: %#v\n",
@@ -43,50 +43,47 @@ func testcase(t *testing.T, name string, first, second, expected map[string]inte
 	}
 }
 
-type tbl map[string]interface{}
-type ary []interface{}
-
-func TestMergeMaps(t *testing.T) {
+func TestMergeTables(t *testing.T) {
 	testcase(t, "merge tables with scalars",
-		tbl{"bool1": true, "int1": 42, "str1": "hallo"},
-		tbl{"bool2": false, "int1": 23, "str1": 5},
-		tbl{"bool1": true, "bool2": false, "int1": 23, "str1": 5},
+		map[string]interface{}{"bool1": true, "int1": 42, "str1": "hallo"},
+		map[string]interface{}{"bool2": false, "int1": 23, "str1": 5},
+		map[string]interface{}{"bool1": true, "bool2": false, "int1": 23, "str1": 5},
 		"",
 	)
 	testcase(t, "merge tables with arrays",
-		tbl{
+		map[string]interface{}{
 			"scalar1": false,
-			"array":   ary{1, 2, 3},
+			"array":   []interface{}{1, 2, 3},
 		},
-		tbl{
+		map[string]interface{}{
 			"scalar2": true,
-			"array":   ary{4, 5, 6},
+			"array":   []interface{}{4, 5, 6},
 		},
-		tbl{
+		map[string]interface{}{
 			"scalar1": false,
 			"scalar2": true,
-			"array":   ary{1, 2, 3, 4, 5, 6},
+			"array":   []interface{}{1, 2, 3, 4, 5, 6},
 		},
 		"",
 	)
 	testcase(t, "merge tables with tables",
-		tbl{
-			"foo": tbl{"a": 1, "b": 2},
-			"bar": tbl{"c": 3, "d": 4},
+		map[string]interface{}{
+			"foo": map[string]interface{}{"a": 1, "b": 2},
+			"bar": map[string]interface{}{"c": 3, "d": 4},
 		},
-		tbl{
-			"foo": tbl{"a": 10, "c": 30},
+		map[string]interface{}{
+			"foo": map[string]interface{}{"a": 10, "c": 30},
 		},
-		tbl{
-			"foo": tbl{"a": 10, "b": 2, "c": 30},
-			"bar": tbl{"c": 3, "d": 4},
+		map[string]interface{}{
+			"foo": map[string]interface{}{"a": 10, "b": 2, "c": 30},
+			"bar": map[string]interface{}{"c": 3, "d": 4},
 		},
 		"",
 	)
 	testcase(t, "type mismatch: scalar <> array",
-		tbl{"foo": tbl{"bar": 5, "baz": 23}},
-		tbl{"foo": tbl{"bar": ary{1, 2, 3}}},
+		map[string]interface{}{"foo": map[string]interface{}{"bar": 5, "baz": 23}},
+		map[string]interface{}{"foo": map[string]interface{}{"bar": []interface{}{1, 2, 3}}},
 		nil,
-		"type mismatch in .Vars.foo: scalar <> array",
+		"type mismatch in .Vars.foo.bar: scalar <> array",
 	)
 }
