@@ -29,6 +29,7 @@ import (
 	"github.com/MasterMinds/sprig"
 )
 
+const defaultDirectory = `/etc/replicator.d`
 const configGlob = `/etc/replicator.d/*.toml`
 
 func failIf(err error) {
@@ -38,27 +39,33 @@ func failIf(err error) {
 	}
 }
 
-func readConfig() map[string]interface{} {
-	paths, err := filepath.Glob(configGlob)
+func readConfig(dir string) map[string]interface{} {
+	paths, err := filepath.Glob(filepath.Join(dir, "*.toml"))
 	failIf(err)
 
-	text := ""
+	result := map[string]interface{}{}
 	for _, path := range paths {
 		bytes, err := ioutil.ReadFile(path)
 		failIf(err)
-		text += string(bytes) + "\n"
+		var next map[string]interface{}
+		failIf(toml.Unmarshal(bytes, &next))
+		result, err = MergeTables(result, next)
+		failIf(err)
 	}
 
-	result := map[string]interface{}{}
-	failIf(toml.Unmarshal([]byte(text), &result))
 	return result
 }
 
 func main() {
+	dir := os.Getenv("REPLICATOR_VARIABLES_DIR")
+	if dir == "" {
+		dir = defaultDirectory
+	}
+
 	var locals struct {
 		Vars map[string]interface{}
 	}
-	locals.Vars = readConfig()
+	locals.Vars = readConfig(dir)
 
 	tmplText, err := ioutil.ReadAll(os.Stdin)
 	failIf(err)
