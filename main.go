@@ -20,10 +20,10 @@ package main
 
 import (
 	"fmt"
-	"html/template"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"text/template"
 
 	"github.com/BurntSushi/toml"
 	"github.com/MasterMinds/sprig"
@@ -69,7 +69,7 @@ func main() {
 
 	tmplText, err := ioutil.ReadAll(os.Stdin)
 	failIf(err)
-	tmpl, err := template.New("stdin").Funcs(sprig.FuncMap()).Parse(string(tmplText))
+	tmpl, err := template.New("stdin").Funcs(sprig.TxtFuncMap()).Parse(string(tmplText))
 	failIf(err)
 	failIf(tmpl.Execute(os.Stdout, &locals))
 }
