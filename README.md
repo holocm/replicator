@@ -32,6 +32,12 @@ $ replicator < example.txt
 Hello foo. Hello bar.
 ```
 
+The environment variable `REPLICATOR_INPUTS` can be used to instruct Replicator to use different source files. The variable shall contain a list of globs, separated by colons. For example, the following example uses Replicator's merging algorithm to merge several TOML files into one:
+
+```bash
+$ echo '{{toToml .Vars}}' | REPLICATOR_INPUTS=input1/*.toml:input2/*.toml replicator
+```
+
 ## Installation
 
 Replicator requires [Go](https://golang.org) as build-time dependencies. There

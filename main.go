@@ -30,8 +30,7 @@ import (
 	"github.com/MasterMinds/sprig"
 )
 
-const defaultDirectory = `/etc/replicator.d`
-const configGlob = `/etc/replicator.d/*.toml`
+const defaultInputs = `/etc/replicator.d/*.toml`
 
 func failIf(err error) {
 	if err != nil {
@@ -40,9 +39,16 @@ func failIf(err error) {
 	}
 }
 
-func readConfig(dir string) map[string]interface{} {
-	paths, err := filepath.Glob(filepath.Join(dir, "*.toml"))
-	failIf(err)
+func readConfig(globs string) map[string]interface{} {
+	var paths []string
+	for _, glob := range filepath.SplitList(globs) {
+		globPaths, err := filepath.Glob(glob)
+		failIf(err)
+		if len(globPaths) == 0 {
+			failIf(fmt.Errorf("no matches for glob: %s", glob))
+		}
+		paths = append(paths, globPaths...)
+	}
 
 	result := map[string]interface{}{}
 	for _, path := range paths {
@@ -58,15 +64,15 @@ func readConfig(dir string) map[string]interface{} {
 }
 
 func main() {
-	dir := os.Getenv("REPLICATOR_VARIABLES_DIR")
-	if dir == "" {
-		dir = defaultDirectory
+	inputs := os.Getenv("REPLICATOR_INPUTS")
+	if inputs == "" {
+		inputs = defaultInputs
 	}
 
 	var locals struct {
 		Vars map[string]interface{}
 	}
-	locals.Vars = readConfig(dir)
+	locals.Vars = readConfig(inputs)
 
 	tmplText, err := ioutil.ReadAll(os.Stdin)
 	failIf(err)

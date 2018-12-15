@@ -2,6 +2,7 @@
 
 Changes:
 
+- Replace `REPLICATOR_VARIABLES_DIR` env variable by more versatile `REPLICATOR_INPUTS` variable.
 - Add template function `toToml`. Works just like `toJson` from Sprig.
 
 # v0.3.0 (2017-09-30)
