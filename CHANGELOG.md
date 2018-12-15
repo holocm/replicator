@@ -1,3 +1,9 @@
+# v0.4.0 (TBD)
+
+Changes:
+
+- Add template function `toToml`. Works just like `toJson` from Sprig.
+
 # v0.3.0 (2017-09-30)
 
 Bugfixes:

@@ -19,6 +19,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"io/ioutil"
 	"os"
@@ -69,7 +70,18 @@ func main() {
 
 	tmplText, err := ioutil.ReadAll(os.Stdin)
 	failIf(err)
-	tmpl, err := template.New("stdin").Funcs(sprig.TxtFuncMap()).Parse(string(tmplText))
+	tmpl, err := template.New("stdin").Funcs(sprig.TxtFuncMap()).Funcs(customFuncMap()).Parse(string(tmplText))
 	failIf(err)
 	failIf(tmpl.Execute(os.Stdout, &locals))
+}
+
+func customFuncMap() template.FuncMap {
+	return template.FuncMap{
+		"toToml": toToml,
+	}
+}
+func toToml(val interface{}) (string, error) {
+	var buf bytes.Buffer
+	err := toml.NewEncoder(&buf).Encode(val)
+	return buf.String(), err
 }

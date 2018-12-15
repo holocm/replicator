@@ -8,6 +8,8 @@ template to standard output.
   functions](https://github.com/MasterMinds/sprig) is available. Refer to the release notes for which Sprig version is
   available in a specific release of Replicator.
 
+  The additional template function `toToml` is available, and works analogously to `toJson` from Sprig.
+
 * Variables come from [TOML files](https://github.com/toml-lang/toml) in files
   called `/etc/replicator.d/*.toml`. If there are multiple files, they are
   parsed in alphabetical order and merged as described in the section "Merging"
@@ -28,14 +30,13 @@ $ cat example.txt
 
 $ replicator < example.txt
 Hello foo. Hello bar.
-
 ```
 
 ## Installation
 
-Replicator requires [Go](https://golang.org) and [Perl](https://perl.org) as
-build-time dependencies. There are no runtime dependencies other than a libc.
-Once you're all set, the build is done with
+Replicator requires [Go](https://golang.org) as build-time dependencies. There
+are no runtime dependencies other than a libc. Once you're all set, the build
+is done with
 
 ```
 make
